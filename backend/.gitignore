@@ -1,0 +1,32 @@
+# Environnements virtuels
+venv/
+.env/
+
+# Fichiers de configuration sensible
+*.env
+config.py
+instance/
+
+# Fichiers de cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Dépendances installées
+*.egg-info/
+dist/
+build/
+
+# Logs et bases de données
+*.log
+*.sqlite3
+*.db
+
+# JetBrains IDEs
+.idea/
+
+# VSCode
+.vscode/
+
+# MacOS
+.DS_Store

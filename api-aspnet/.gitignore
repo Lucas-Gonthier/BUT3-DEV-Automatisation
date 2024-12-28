@@ -1,0 +1,36 @@
+# Dossiers et fichiers générés
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Environnements sensibles
+.env
+secrets.json
+
+# Fichiers de log
+*.log
+
+# Configurations spécifiques à l'IDE
+.vscode/
+.idea/
+
+# Caches et dossiers temporaires
+*.pidb
+*.unityproj
+*.cache
+*.tmp
+
+# MacOS
+.DS_Store
+
+# Visual Studio Code
+.vscode/
+
+# Visual Studio
+.vs/
+
+# Dépendances locales (si présentes)
+local_packages/
