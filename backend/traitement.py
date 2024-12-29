@@ -119,9 +119,9 @@ def afficher_nombre():
         resultat = recuperer_donnees_nombre(nombre)  # Récupération des données du nombre
         return jsonify(resultat)
     else:
-        #envoyer_suite_syracuse(nombre)  # Envoie de la suite de Syracuse à l'API .NET
+        envoyer_suite_syracuse(nombre)  # Envoie de la suite de Syracuse à l'API .NET
         resultat = ajouter_nombre_bdd(nombre)  # Ajouter le nombre à la BDD et récupérer les données après ajout
-        #resultat = {**resultat, "syracuse": telecharger_syracuse(nombre)} 
+        resultat = {**resultat, "syracuse": telecharger_syracuse(nombre)} 
         # Téléchargement de la suite de Syracuse depuis l'API .NET et ajout dans le résultat
         return jsonify(resultat)
 

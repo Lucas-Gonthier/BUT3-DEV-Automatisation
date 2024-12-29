@@ -15,6 +15,9 @@ builder.Services.AddDbContext<ResultContext>(opt =>
     new MySqlServerVersion(new Version(8, 0, 30))));
 builder.Services.AddControllers();
 
+// Définition du service Minio
+builder.Services.AddSingleton<MinioService>();
+
 var app = builder.Build();
 
 // Vérifie si la base de données existe, sinon elle est créée
@@ -52,16 +55,25 @@ public class ResultContext : DbContext
     public DbSet<Result> Results { get; set; }
 }
 
+// Service Minio pour la gestion des fichiers
+public class SyracuseData
+{
+    public int Nombre { get; set; }
+    public List<int> Suite { get; set; } = new List<int>();
+}
+
 // Contrôleur pour les résultats (API)
 [ApiController]
 [Route("api")]
 public class ResultsController : ControllerBase
 {
     private readonly ResultContext _context;
+    private readonly MinioService _minioService;
 
-    public ResultsController(ResultContext context)
+    public ResultsController(ResultContext context, MinioService minioService)
     {
         _context = context;
+        _minioService = minioService;
     }
 
     // Vérifier si un nombre existe dans la base de données
@@ -105,5 +117,30 @@ public class ResultsController : ControllerBase
     {
         var results = _context.Results.ToList();
         return Ok(results);
+    }
+
+    // Enregistrer la suite de Syracuse dans MinIO
+    [HttpPost("envoyer-syracuse")]
+    public async Task<IActionResult> StoreSyracuse([FromBody] SyracuseData syracuseData)
+    {
+        var syracuseJson = System.Text.Json.JsonSerializer.Serialize(syracuseData.Suite);
+        await _minioService.UploadFileAsync($"syracuse_{syracuseData.Nombre}.json", syracuseJson);
+
+        return Ok();
+    }
+
+    // Télécharger la suite de Syracuse depuis MinIO
+    [HttpGet("download-syracuse")]
+    public async Task<IActionResult> DownloadSyracuse(int nombre)
+    {
+        var objectName = $"syracuse_{nombre}.json";
+        var stream = await _minioService.GetFileAsync(objectName);
+
+        if (stream == null)
+        {
+            return NotFound();
+        }
+
+        return File(stream, "application/json", objectName);
     }
 }
