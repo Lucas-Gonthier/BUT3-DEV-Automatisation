@@ -1,14 +1,19 @@
-# Étape 1 : Utiliser l'image Python
+# Étape 1 : Utiliser l'image Python officielle légère
 FROM python:3.9-slim
 
 # Définir le répertoire de travail
 WORKDIR /app
 
-# Copier le code du backend
-COPY ./backend /app
+# Copier uniquement le fichier Python nécessaire
+COPY . ./
 
-# Installer les dépendances
-RUN pip install -r requirements.txt
+# Si aucune dépendance n'est nécessaire, sauter l'étape d'installation
+# Si des dépendances sont nécessaires, créez un fichier requirements.txt et ajoutez les lignes suivantes :
+# COPY requirements.txt /app
+# RUN pip install --no-cache-dir -r requirements.txt
 
+# Exposer le port sur lequel votre application écoutera
 EXPOSE 5000
-CMD ["python", "app.py"]
+
+# Commande par défaut pour exécuter le fichier Python
+CMD ["python", "traitement.py"]

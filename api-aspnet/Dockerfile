@@ -1,21 +1,25 @@
-# Utiliser l'image officielle de .NET
-FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
+# Étape 1 : Construire l'application
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
 WORKDIR /app
-EXPOSE 8080
 
-# Utiliser l'image de build pour ASP.NET
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
-WORKDIR /src
-COPY ["api-aspnet/api-aspnet.csproj", "api-aspnet/"]
-RUN dotnet restore "api-aspnet/api-aspnet.csproj"
-COPY . .
-WORKDIR "/src/api-aspnet"
-RUN dotnet build "api-aspnet.csproj" -c Release -o /app/build
+# Copier les fichiers du projet
+COPY ./api-aspnet.csproj ./
+RUN dotnet restore
 
-FROM build AS publish
-RUN dotnet publish "api-aspnet.csproj" -c Release -o /app/publish
+# Copier tout le reste des fichiers et construire l'application
+COPY . ./
+RUN dotnet build -c Release -o /app/build
+RUN dotnet publish -c Release -o /app/publish
 
-FROM base AS final
+# Étape 2 : Préparer l'image de production avec uniquement le runtime
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
-COPY --from=publish /app/publish .
+
+# Copier les fichiers publiés dans l'image de production
+COPY --from=build-env /app/publish .
+
+# Exposer le port pour les requêtes HTTP
+EXPOSE 80
+
+# Commande de démarrage
 ENTRYPOINT ["dotnet", "api-aspnet.dll"]
