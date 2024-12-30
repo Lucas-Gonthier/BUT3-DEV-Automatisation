@@ -9,16 +9,35 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var dbConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+
 // Définition de la chaîne de connexion MySQL
 builder.Services.AddDbContext<ResultContext>(opt => 
-    opt.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"), 
-    new MySqlServerVersion(new Version(8, 0, 30))));
+    opt.UseMySql(dbConnectionString, // Utiliser dbConnectionString ici
+    new MySqlServerVersion(new Version(8, 0, 21)),
+    mySqlOptions => mySqlOptions.EnableRetryOnFailure(
+        maxRetryCount: 5,
+        maxRetryDelay: TimeSpan.FromSeconds(10),
+        errorNumbersToAdd: null)));
+
+// Configuration CORS : Permettre toutes les origines, méthodes et en-têtes
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()   // Accepter toutes les origines
+              .AllowAnyMethod()   // Accepter toutes les méthodes HTTP
+              .AllowAnyHeader();  // Accepter tous les en-têtes
+    });
+});
+
 builder.Services.AddControllers();
 
 // Définition du service Minio
 builder.Services.AddSingleton<MinioService>();
 
 var app = builder.Build();
+app.UseCors("AllowAll");
 
 // Vérifie si la base de données existe, sinon elle est créée
 using (var scope = app.Services.CreateScope())
@@ -80,8 +99,15 @@ public class ResultsController : ControllerBase
     [HttpGet("check")]
     public IActionResult CheckResult(int nombre)
     {
-        var exists = _context.Results.Any(r => r.nombre == nombre);
-        return Ok(new { exists });
+        try
+        {
+            var exists = _context.Results.Any(r => r.nombre == nombre);
+            return Ok(new { exists });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = ex.Message });
+        }
     }
 
     // Enregistrer un résultat dans la base de données

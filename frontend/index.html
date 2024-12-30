@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Évaluations Numériques</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+        }
+        input, button {
+            margin: 10px 0;
+            padding: 10px;
+            font-size: 16px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <h1>Évaluations Numériques</h1>
+        <input id="numberInput" type="text" placeholder="Entrez un nombre" />
+        <button id="sendButton">Envoyer</button>
+        
+        <div id="results" style="display: none;">
+            <h2>Résultats des évaluations :</h2>
+            <p id="pairResult">Pair : </p>
+            <p id="premierResult">Premier : </p>
+            <p id="parfaitResult">Parfait : </p>
+            <p id="syracuseResult">Syracuse : </p>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('sendButton').addEventListener('click', async () => {
+            // Récupère l'élément du champ de saisie
+            const numberInput = document.getElementById("numberInput");
+            // Convertit la valeur saisie en un entier
+            const number = parseInt(numberInput.value, 10);
+            
+            // Vérifie si la valeur saisie est un nombre valide
+            if (isNaN(number)) {
+                alert("Veuillez entrer un nombre valide !");
+                return;
+            }
+            
+            // Vérifie si le nombre est trop grand
+            const maxNumber = 1e8; // Limite maximale (100000000)
+            if (number > maxNumber) {
+                alert(`Le nombre saisi est trop grand. Veuillez entrer un nombre inférieur à ${maxNumber}.`);
+                return;
+            }
+            
+            // Envoie une requête POST au serveur
+            fetch('http://localhost:5000/afficher', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ number: number }),
+                mode: 'no-cors',
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Erreur HTTP ${response.status}`); // Lève une erreur si la réponse n'est pas correcte
+                }
+                return response.json(); // Parse la réponse en JSON
+            })
+            .then(data => {
+                console.log('Réponse reçue du serveur:', data); // Log les données reçues
+                // Vérifie que les champs attendus existent dans la réponse
+                if (data.pair === undefined || data.premier === undefined || data.parfait === undefined || !Array.isArray(data.syracuse)) {
+                    throw new Error('Structure de réponse invalide.');
+                }
+                // Met à jour l'interface utilisateur avec les résultats reçus
+                try {
+                    // Affiche si le nombre est pair
+                    document.getElementById("pairResult").innerText = `Pair : ${data.pair ? "Oui" : "Non"}`;
+                    // Affiche si le nombre est premier
+                    document.getElementById("premierResult").innerText = `Premier : ${data.premier ? "Oui" : "Non"}`;
+                    // Affiche si le nombre est parfait
+                    document.getElementById("parfaitResult").innerText = `Parfait : ${data.parfait ? "Oui" : "Non"}`;
+                    // Affiche la suite de Syracuse
+                    document.getElementById("syracuseResult").innerText = `Syracuse : ${data.syracuse.join(", ")}`;
+                } catch (error) {
+                    console.error('Erreur lors de la mise à jour des résultats:', error);
+                    alert("Une erreur est survenue lors de l'affichage des résultats.");
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error); // Affiche l'erreur dans la console
+                alert("Une erreur est survenue. Veuillez vérifier que le serveur est en cours d'exécution ou que les données sont valides.");
+            });
+        });
+    </script>
+</body>
+</html>

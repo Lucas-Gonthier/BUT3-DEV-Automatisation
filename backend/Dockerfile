@@ -10,7 +10,7 @@ COPY . ./
 # Si aucune dépendance n'est nécessaire, sauter l'étape d'installation
 # Si des dépendances sont nécessaires, créez un fichier requirements.txt et ajoutez les lignes suivantes :
 # COPY requirements.txt /app
-# RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install flask flask-cors requests
 
 # Exposer le port sur lequel votre application écoutera
 EXPOSE 5000

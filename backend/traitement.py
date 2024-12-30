@@ -5,12 +5,18 @@ from flask_cors import CORS
 import requests
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
 
 @app.route("/")
 def accueil():
     return "Bonjour, Monde!"
 
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
+    response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+    return response
 
 # Vérifier si un nombre est pair (argument de type int, retourne un booléen)
 def est_pair(nombre: int) -> bool:

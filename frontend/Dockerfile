@@ -1,15 +1,14 @@
-# Étape 1 : Construire l'application Nuxt.js
-FROM node:18 AS build-stage
-
-WORKDIR /app
-COPY ./frontend /app
-RUN npm install
-RUN npm run build
-
-# Étape 2 : Créer l'image pour servir le frontend
+# Utiliser l'image NGINX comme base
 FROM nginx:alpine
 
-COPY --from=build-stage /app/.output/public /usr/share/nginx/html
+# Définir le répertoire par défaut dans le conteneur
+WORKDIR /usr/share/nginx/html
 
+# Copier tous les fichiers du répertoire IHM dans le répertoire de NGINX
+COPY . .
+
+# Exposer le port 80 (port par défaut de NGINX)
 EXPOSE 80
+
+# Démarrer le serveur NGINX
 CMD ["nginx", "-g", "daemon off;"]
